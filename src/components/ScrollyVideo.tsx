@@ -1,7 +1,12 @@
 "use client";
 
-import { useScroll, useSpring, useMotionValueEvent, motion, MotionValue } from "framer-motion";
-import { useEffect, useRef, ReactNode } from "react";
+import {
+  useScroll,
+  useSpring,
+  useMotionValueEvent,
+  MotionValue,
+} from "framer-motion";
+import { useRef, ReactNode } from "react";
 
 interface ScrollyVideoProps {
   src: string;
@@ -12,30 +17,25 @@ export default function ScrollyVideo({ src, children }: ScrollyVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Scroll progress for the container
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
-  // Smooth out the scroll value
   const springScroll = useSpring(scrollYProgress, {
-    damping: 50,
-    stiffness: 400,
+    damping: 80,
+    stiffness: 200,
+    mass: 0.5,
   });
 
-  // Update video time based on scroll
   useMotionValueEvent(springScroll, "change", (latest) => {
-    if (videoRef.current && videoRef.current.duration) {
-       // Check if duration is valid (readyState > 0)
-       if (videoRef.current.readyState > 0) {
-          videoRef.current.currentTime = latest * videoRef.current.duration;
-       }
+    if (videoRef.current && videoRef.current.duration && videoRef.current.readyState > 0) {
+      videoRef.current.currentTime = latest * videoRef.current.duration;
     }
   });
 
   return (
-    <div ref={containerRef} className="relative h-[400vh]">
+    <div ref={containerRef} className="relative h-[500vh]">
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <video
           ref={videoRef}
@@ -45,7 +45,10 @@ export default function ScrollyVideo({ src, children }: ScrollyVideoProps) {
           playsInline
           preload="auto"
         />
-        {/* Render children (Overlay) passing the springScroll value */}
+
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
         {children && children(springScroll)}
       </div>
     </div>
